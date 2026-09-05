@@ -6,6 +6,7 @@ import boxReadingsRouter from "./routes/boxReadings.js";
 import pricingRouter from "./routes/pricing.js";
 import statisticsRouter from "./routes/statistics.js";
 import settingsRouter from "./routes/settings.js";
+import adminRouter from "./routes/admin.js";
 
 const app = express();
 const allowedOrigins = process.env.CORS_ORIGIN
@@ -22,6 +23,7 @@ app.use("/api/box-readings", boxReadingsRouter);
 app.use("/api/pricing", pricingRouter);
 app.use("/api/statistics", statisticsRouter);
 app.use("/api/settings", settingsRouter);
+app.use("/api/admin", adminRouter);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
