@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+.env.local
+
+# Contains real subscriber names/phones/balances — don't commit it.
+# On Railway, attach a Volume and set DATA_DIR to its mount path instead.
+server/data/*.xlsx
