@@ -1,5 +1,5 @@
 import express from "express";
-import { getDb, save, nextId } from "../lib/excelStore.js";
+import { getDb, save, nextId } from "../lib/store.js";
 import { liraToUsd, subscriptionFeeFor, computeRecord, addMonths } from "../lib/calc.js";
 
 const router = express.Router();
@@ -19,7 +19,7 @@ router.get("/counts", (req, res) => {
   res.json(counts);
 });
 
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
   const db = getDb();
   const { name, familyName, fatherName, phone, box, amps, securityDepositLira, billingType } = req.body;
   if (!name || !familyName || !fatherName || !phone || box == null || box === "" || amps == null || amps === "") {
@@ -42,11 +42,11 @@ router.post("/", (req, res) => {
     billingType: billingType || "METER",
   };
   db.subscribers.push(sub);
-  save();
+  await save();
   res.json({ message: "تم إضافة المشترك بنجاح", subscriber: sub });
 });
 
-router.put("/:id", (req, res) => {
+router.put("/:id", async (req, res) => {
   const db = getDb();
   const id = Number(req.params.id);
   const sub = db.subscribers.find((s) => s.id === id);
@@ -71,18 +71,18 @@ router.put("/:id", (req, res) => {
     securityDepositUsd: liraToUsd(depositLira, db.settings.exchangeRate),
     billingType: billingType || "METER",
   });
-  save();
+  await save();
   res.json({ message: "تم تحديث المشترك بنجاح", subscriber: sub });
 });
 
-router.delete("/:id", (req, res) => {
+router.delete("/:id", async (req, res) => {
   const db = getDb();
   const id = Number(req.params.id);
   const idx = db.subscribers.findIndex((s) => s.id === id);
   if (idx === -1) return res.status(404).json({ error: "not found" });
   db.subscribers.splice(idx, 1);
   db.monthlyBills = db.monthlyBills.filter((r) => r.subscriberId !== id);
-  save();
+  await save();
   res.json({ ok: true });
 });
 
@@ -109,7 +109,7 @@ router.get("/:id/pay-months", (req, res) => {
   res.json([...months].sort());
 });
 
-router.post("/:id/pay", (req, res) => {
+router.post("/:id/pay", async (req, res) => {
   const db = getDb();
   const id = Number(req.params.id);
   const sub = db.subscribers.find((s) => s.id === id);
@@ -138,7 +138,7 @@ router.post("/:id/pay", (req, res) => {
       printedAt: null,
     };
     db.monthlyBills.push(record);
-    save();
+    await save();
   }
   res.json({ record: { ...record, ...computeRecord(sub, record) }, subscriber: sub });
 });

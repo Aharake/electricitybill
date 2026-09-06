@@ -1,5 +1,5 @@
 import express from "express";
-import { getDb, save, nextId } from "../lib/excelStore.js";
+import { getDb, save, nextId } from "../lib/store.js";
 import { computeRecord, subscriptionFeeFor, propagateForward, addMonths, liraToUsd } from "../lib/calc.js";
 
 const router = express.Router();
@@ -23,7 +23,7 @@ router.get("/months", (req, res) => {
   res.json(months);
 });
 
-router.put("/:id", (req, res) => {
+router.put("/:id", async (req, res) => {
   const db = getDb();
   const id = Number(req.params.id);
   const record = db.monthlyBills.find((r) => r.id === id);
@@ -49,11 +49,11 @@ router.put("/:id", (req, res) => {
   }
 
   propagateForward(db, record.subscriberId, record.month);
-  save();
+  await save();
   res.json(withComputed(db, record));
 });
 
-router.post("/create", (req, res) => {
+router.post("/create", async (req, res) => {
   const db = getDb();
   const { month } = req.body;
   if (!month) return res.status(400).json({ error: "month required" });
@@ -83,11 +83,11 @@ router.post("/create", (req, res) => {
   }
 
   for (const sub of db.subscribers) propagateForward(db, sub.id, month);
-  save();
+  await save();
   res.json({ ok: true, count: db.subscribers.length });
 });
 
-router.post("/close", (req, res) => {
+router.post("/close", async (req, res) => {
   const db = getDb();
   const { month } = req.body;
   if (!month) return res.status(400).json({ error: "month required" });
@@ -113,27 +113,27 @@ router.post("/close", (req, res) => {
     });
   }
   db.settings.currentMonth = nextMonth;
-  save();
+  await save();
   res.json({ ok: true, nextMonth });
 });
 
-router.post("/update-price", (req, res) => {
+router.post("/update-price", async (req, res) => {
   const db = getDb();
   const { month, priceLira } = req.body;
   if (!month) return res.status(400).json({ error: "month required" });
   const usd = liraToUsd(priceLira, db.settings.exchangeRate);
   db.monthlyBills.filter((r) => r.month === month).forEach((r) => (r.pricePerAmpUsd = usd));
-  save();
+  await save();
   res.json({ message: `تم تحديث السعر للشهر ${month}` });
 });
 
-router.post("/:id/print", (req, res) => {
+router.post("/:id/print", async (req, res) => {
   const db = getDb();
   const id = Number(req.params.id);
   const record = db.monthlyBills.find((r) => r.id === id);
   if (!record) return res.status(404).json({ error: "not found" });
   record.printedAt = new Date().toISOString();
-  save();
+  await save();
   res.json(withComputed(db, record));
 });
 

@@ -7,6 +7,7 @@ import pricingRouter from "./routes/pricing.js";
 import statisticsRouter from "./routes/statistics.js";
 import settingsRouter from "./routes/settings.js";
 import adminRouter from "./routes/admin.js";
+import { whenReady } from "./lib/store.js";
 
 const app = express();
 const allowedOrigins = process.env.CORS_ORIGIN
@@ -26,6 +27,8 @@ app.use("/api/settings", settingsRouter);
 app.use("/api/admin", adminRouter);
 
 const PORT = process.env.PORT || 4000;
+
+await whenReady();
 app.listen(PORT, () => {
   console.log(`Electric billing server running on http://localhost:${PORT}`);
 });

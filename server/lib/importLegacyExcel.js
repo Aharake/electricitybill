@@ -4,7 +4,7 @@
 // (routes/admin.js) so a redeploy can be re-seeded with real data without
 // filesystem access to the production machine.
 import XLSX from "xlsx";
-import { save } from "./excelStore.js";
+import { save } from "./store.js";
 
 const MONTH_MAP = {
   "كانون الثاني": "01", "كانون 2": "01",
@@ -29,7 +29,7 @@ const COL = {
   lastDebt: 19, paidUsd: 21, paidLira: 22,
 };
 
-export function importLegacyExcel(db, workbookInput) {
+export async function importLegacyExcel(db, workbookInput) {
   const wb = Buffer.isBuffer(workbookInput)
     ? XLSX.read(workbookInput, { type: "buffer" })
     : XLSX.readFile(workbookInput);
@@ -108,7 +108,7 @@ export function importLegacyExcel(db, workbookInput) {
     imported++;
   }
 
-  save();
+  await save();
 
   return { imported, skipped, monthKey, rate };
 }

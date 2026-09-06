@@ -1,5 +1,5 @@
 import express from "express";
-import { getDb } from "../lib/excelStore.js";
+import { getDb } from "../lib/store.js";
 import { computeRecord, usdToLira } from "../lib/calc.js";
 
 const router = express.Router();

@@ -1,10 +1,10 @@
 // One-off maintenance endpoint: upload the legacy Excel workbook straight to
-// a deployed server whose data.xlsx lives on a volume you can't otherwise
-// reach (e.g. a Railway Volume). Protected by ADMIN_TOKEN — unset means the
-// route always refuses, so it's safe to leave mounted.
+// a deployed server's database, without shell/file access to the container.
+// Protected by ADMIN_TOKEN — unset means the route always refuses, so it's
+// safe to leave mounted.
 import express from "express";
 import multer from "multer";
-import { getDb } from "../lib/excelStore.js";
+import { getDb } from "../lib/store.js";
 import { importLegacyExcel } from "../lib/importLegacyExcel.js";
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -19,10 +19,10 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-router.post("/import", requireAdmin, upload.single("file"), (req, res) => {
+router.post("/import", requireAdmin, upload.single("file"), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: "no file uploaded (field name: file)" });
   try {
-    const result = importLegacyExcel(getDb(), req.file.buffer);
+    const result = await importLegacyExcel(getDb(), req.file.buffer);
     res.json({ message: "تم الاستيراد بنجاح", ...result });
   } catch (e) {
     res.status(400).json({ error: e.message });

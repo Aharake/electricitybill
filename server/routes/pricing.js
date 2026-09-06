@@ -1,5 +1,5 @@
 import express from "express";
-import { getDb, save } from "../lib/excelStore.js";
+import { getDb, save } from "../lib/store.js";
 import { liraToUsd, usdToLira } from "../lib/calc.js";
 import { DEFAULT_PRICING_USD, DEFAULT_THABET_USD, isThabetName } from "../lib/defaults.js";
 
@@ -48,7 +48,7 @@ router.get("/:scope", (req, res) => {
   res.json(rows);
 });
 
-router.put("/:scope", (req, res) => {
+router.put("/:scope", async (req, res) => {
   const db = getDb();
   const scope = req.params.scope;
   const { month, rows } = req.body;
@@ -82,11 +82,11 @@ router.put("/:scope", (req, res) => {
       if (override) r.subscriptionFeeUsd = override.priceUsd;
     });
   }
-  save();
+  await save();
   res.json({ ok: true });
 });
 
-router.post("/:scope/add", (req, res) => {
+router.post("/:scope/add", async (req, res) => {
   const db = getDb();
   const scope = req.params.scope;
   const amps = Number(req.body.amps);
@@ -96,26 +96,26 @@ router.post("/:scope/add", (req, res) => {
     return res.status(400).json({ error: "duplicate" });
   }
   table.push({ amps, priceUsd: 10 });
-  save();
+  await save();
   res.json({ ok: true });
 });
 
-router.delete("/:scope/:amps", (req, res) => {
+router.delete("/:scope/:amps", async (req, res) => {
   const db = getDb();
   const scope = req.params.scope;
   const amps = Number(req.params.amps);
   if (scope === "thabet") db.thabetPricing = db.thabetPricing.filter((r) => Number(r.amps) !== amps);
   else db.pricing = db.pricing.filter((r) => Number(r.amps) !== amps);
-  save();
+  await save();
   res.json({ ok: true });
 });
 
-router.post("/:scope/reset", (req, res) => {
+router.post("/:scope/reset", async (req, res) => {
   const db = getDb();
   const scope = req.params.scope;
   if (scope === "thabet") db.thabetPricing = DEFAULT_THABET_USD.map((p) => ({ ...p }));
   else db.pricing = DEFAULT_PRICING_USD.map((p) => ({ ...p }));
-  save();
+  await save();
   res.json({ ok: true });
 });
 

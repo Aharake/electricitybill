@@ -1,5 +1,5 @@
 import express from "express";
-import { getDb, save, nextId } from "../lib/excelStore.js";
+import { getDb, save, nextId } from "../lib/store.js";
 import { computeRecord, subscriptionFeeFor, propagateForward, addMonths } from "../lib/calc.js";
 
 const router = express.Router();
@@ -27,7 +27,7 @@ router.get("/", (req, res) => {
   res.json(rows);
 });
 
-router.post("/upsert", (req, res) => {
+router.post("/upsert", async (req, res) => {
   const db = getDb();
   const { month } = req.body;
   if (!month || !MONTH_RE.test(month)) return res.status(400).json({ error: "صيغة غير صحيحة (yyyy-MM)" });
@@ -55,18 +55,18 @@ router.post("/upsert", (req, res) => {
     });
   }
   db.settings.currentMonth = month;
-  save();
+  await save();
   res.json({ message: `تم إنشاء/تحديث سجلات الشهر ${month}` });
 });
 
-router.put("/:id", (req, res) => {
+router.put("/:id", async (req, res) => {
   const db = getDb();
   const id = Number(req.params.id);
   const record = db.monthlyBills.find((r) => r.id === id);
   if (!record) return res.status(404).json({ error: "not found" });
   record.curr = Number(req.body.curr) || 0;
   propagateForward(db, record.subscriberId, record.month);
-  save();
+  await save();
   res.json({ ok: true });
 });
 
