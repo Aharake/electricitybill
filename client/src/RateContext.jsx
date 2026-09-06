@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { api } from "./api";
+import { getToken } from "./auth.js";
 
 const RateContext = createContext(null);
 
@@ -8,6 +9,7 @@ export function RateProvider({ children }) {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    if (!getToken()) return; // not logged in yet — /login doesn't need the rate
     api.settings.get().then((s) => {
       setRate(s.exchangeRate);
       setLoaded(true);

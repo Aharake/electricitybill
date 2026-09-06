@@ -18,7 +18,9 @@ async function req(method, url, body) {
   });
 
   if (res.status === 401 && !url.startsWith("/auth/")) {
-    logout();
+    // Never reload from here if we're already on the login page — that's
+    // exactly the loop that turned into a runaway-request bug once before.
+    if (!window.location.hash.startsWith("#/login")) logout();
     throw new Error("انتهت الجلسة، يرجى تسجيل الدخول من جديد");
   }
 
