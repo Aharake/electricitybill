@@ -1,4 +1,4 @@
-// Imports subscriber + first-month billing data from the user's legacy
+// Imports subscribers + every month's billing data from the user's legacy
 // hand-kept workbook into the database.
 //
 // Usage: node scripts/importExcel.js "C:\path\to\source.xlsx"
@@ -14,6 +14,7 @@ if (!SOURCE) {
 
 await whenReady();
 const result = await importLegacyExcel(getDb(), SOURCE);
-console.log(`Imported ${result.imported} subscribers with ${result.monthKey} billing data (skipped ${result.skipped} blank rows).`);
-console.log(`Exchange rate set to ${result.rate}. Current month set to ${result.monthKey}.`);
+console.log(`Imported ${result.imported} subscribers (skipped ${result.skipped} blank rows).`);
+console.log(`Months: ${result.months.join(", ")} — ${result.billsImported} monthly bill records total.`);
+console.log(`Exchange rate set to ${result.rate}. Current month set to ${result.months[result.months.length - 1]}.`);
 process.exit(0);

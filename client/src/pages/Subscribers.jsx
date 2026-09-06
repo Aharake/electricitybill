@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { useRate } from "../RateContext.jsx";
@@ -28,6 +28,8 @@ export default function Subscribers() {
   const [payMonths, setPayMonths] = useState([]);
   const [payMonth, setPayMonth] = useState("");
   const [receiptData, setReceiptData] = useState(null);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     document.title = "إدارة المشتركين - نظام فواتير الاشتراك الكهربائي";
@@ -138,6 +140,27 @@ export default function Subscribers() {
     alert(counts.map((c) => `${c.id} - ${c.name} : ${c.monthlyRowCount}`).join("\n"));
   }
 
+  function handleImportClick() {
+    if (!confirm("سيتم استبدال جميع المشتركين وسجلات الفواتير الحالية بالكامل ببيانات ملف الإكسل. متابعة؟")) return;
+    fileInputRef.current?.click();
+  }
+
+  async function handleImportFile(e) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setImporting(true);
+    try {
+      const r = await api.importData.upload(file);
+      alert(`${r.message}\nالمشتركون: ${r.imported}\nالأشهر: ${r.months.join(", ")}\nسجلات الفواتير: ${r.billsImported}`);
+      load();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setImporting(false);
+    }
+  }
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -147,6 +170,16 @@ export default function Subscribers() {
           <button className="btn" onClick={handleLoadExcel}>تحميل البيانات</button>
           <button className="btn btn-green" onClick={handleSaveExcel}>حفظ البيانات</button>
           <button className="btn btn-purple" onClick={handleCounts}>عدد السجلات</button>
+          <button className="btn btn-orange" onClick={handleImportClick} disabled={importing}>
+            {importing ? "...جارٍ الاستيراد" : "استيراد من Excel"}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.xls"
+            hidden
+            onChange={handleImportFile}
+          />
         </div>
       </header>
 

@@ -12,12 +12,17 @@ const MONTH_RE = /^\d{4}-\d{2}$/;
 export default function BoxReadings() {
   const navigate = useNavigate();
   const [month, setMonth] = useState(todayMonth());
+  const [availableMonths, setAvailableMonths] = useState([]);
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState("");
   const [edits, setEdits] = useState({});
 
   useEffect(() => {
     document.title = "تحديث قراءات رقم العلبة";
+  }, []);
+
+  useEffect(() => {
+    api.monthlyBills.months().then(setAvailableMonths);
   }, []);
 
   const monthValid = MONTH_RE.test(month);
@@ -42,6 +47,7 @@ export default function BoxReadings() {
     try {
       const r = await api.boxReadings.upsert(month);
       alert(r.message);
+      api.monthlyBills.months().then(setAvailableMonths);
       loadRows();
     } catch (e) {
       alert(e.message);
@@ -51,6 +57,13 @@ export default function BoxReadings() {
   async function handleSaveExcel() {
     const r = await api.settings.save();
     alert(r.message);
+  }
+
+  function handleAddMonth() {
+    const value = prompt("أدخل الشهر الجديد بصيغة yyyy-MM", todayMonth());
+    if (!value || !MONTH_RE.test(value)) return;
+    setAvailableMonths((ms) => (ms.includes(value) ? ms : [...ms, value]));
+    setMonth(value);
   }
 
   function fieldValue(row) {
@@ -80,7 +93,12 @@ export default function BoxReadings() {
       <div className="page-body">
         <div className="toolbar">
           <label>الشهر:</label>
-          <input value={month} onChange={(e) => setMonth(e.target.value)} style={{ width: 100 }} />
+          <select value={month} onChange={(e) => setMonth(e.target.value)}>
+            {[...new Set([month, ...availableMonths])].sort().reverse().map((m) => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+          <button className="btn btn-purple" onClick={handleAddMonth}>+ شهر جديد</button>
           <button className="btn" onClick={handleCreateUpdate} disabled={!monthValid}>إنشاء/تحديث السجلات</button>
           <button className="btn btn-green" onClick={handleSaveExcel} disabled={!monthValid}>حفظ إلى Excel</button>
           <input placeholder="ابحث بالاسم أو رقم العلبة" value={search} onChange={(e) => setSearch(e.target.value)} />

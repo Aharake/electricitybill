@@ -31,7 +31,28 @@ async function req(method, url, body) {
   return data;
 }
 
+async function uploadFile(url, file) {
+  const token = getToken();
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch(BASE + url, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    body: form,
+  });
+  if (res.status === 401) {
+    if (!window.location.hash.startsWith("#/login")) logout();
+    throw new Error("انتهت الجلسة، يرجى تسجيل الدخول من جديد");
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || "حدث خطأ");
+  return data;
+}
+
 export const api = {
+  importData: {
+    upload: (file) => uploadFile("/import", file),
+  },
   auth: {
     login: (username, password) => req("POST", "/auth/login", { username, password }),
     me: () => req("GET", "/auth/me"),

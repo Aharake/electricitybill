@@ -130,6 +130,13 @@ export default function MonthlyBills() {
     navigate("/");
   }
 
+  function handleAddMonth() {
+    const value = prompt("أدخل الشهر الجديد بصيغة yyyy-MM", todayMonth());
+    if (!value || !/^\d{4}-\d{2}$/.test(value)) return;
+    setAvailableMonths((ms) => (ms.includes(value) ? ms : [...ms, value]));
+    setActionMonth(value);
+  }
+
   const title = subscriberId ? `كشف الحساب - ${fullName(statementSubscriber)}` : "الفواتير الشهرية";
 
   return (
@@ -146,7 +153,12 @@ export default function MonthlyBills() {
         {!subscriberId && (
           <div className="toolbar">
             <label>شهر (yyyy-MM):</label>
-            <input value={actionMonth} onChange={(e) => setActionMonth(e.target.value)} style={{ width: 100 }} />
+            <select value={actionMonth} onChange={(e) => setActionMonth(e.target.value)}>
+              {[...new Set([actionMonth, ...availableMonths])].sort().reverse().map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+            <button className="btn btn-purple" onClick={handleAddMonth}>+ شهر جديد</button>
             <button className="btn" onClick={handleCreate}>إنشاء سجلات</button>
             <button className="btn btn-orange" onClick={handleClose}>إقفال الشهر ▶</button>
 
