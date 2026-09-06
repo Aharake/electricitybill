@@ -9,6 +9,7 @@ import settingsRouter from "./routes/settings.js";
 import adminRouter from "./routes/admin.js";
 import authRouter from "./routes/auth.js";
 import importDataRouter from "./routes/importData.js";
+import resetMoneyDataRouter from "./routes/resetMoneyData.js";
 import { requireAuth } from "./lib/auth.js";
 import { whenReady } from "./lib/store.js";
 
@@ -32,6 +33,7 @@ app.use("/api/pricing", pricingRouter);
 app.use("/api/statistics", statisticsRouter);
 app.use("/api/settings", settingsRouter);
 app.use("/api/import", importDataRouter);
+app.use("/api/reset-money-data", resetMoneyDataRouter);
 
 const PORT = process.env.PORT || 4000;
 

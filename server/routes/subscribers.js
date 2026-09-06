@@ -130,7 +130,7 @@ router.post("/:id/pay", async (req, res) => {
       subscriberId: id,
       prev: lastCurr,
       curr: lastCurr,
-      pricePerAmpUsd: prior ? prior.pricePerAmpUsd : 0,
+      pricePerAmpUsd: 0,
       subscriptionFeeUsd: subscriptionFeeFor(db, sub, month),
       discountUsd: 0,
       lastDebtUsd: lastRemaining,
