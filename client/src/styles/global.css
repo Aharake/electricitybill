@@ -318,7 +318,6 @@ table.data-table input {
 .receipt-box {
   width: 560px;
   max-width: 95vw;
-  min-height: 640px;
 }
 
 .receipt-grid {
