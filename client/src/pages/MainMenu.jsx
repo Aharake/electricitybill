@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useRate } from "../RateContext.jsx";
 import { useLoading } from "../LoadingContext.jsx";
 import { formatLira, parseLiraInput } from "../format.js";
+import { logout } from "../auth.js";
 
 const CARDS = [
   { key: "subscribers", title: "المشتركين", subtitle: "إضافة، تعديل، وحذف المشتركين", color: "#3498db", path: "/subscribers" },
@@ -30,6 +31,7 @@ export default function MainMenu() {
     <div className="app-shell">
       <header className="app-header">
         <h1>نظام فواتير الاشتراك الكهربائي</h1>
+        <button className="btn btn-secondary" onClick={logout}>تسجيل الخروج</button>
       </header>
       <div className="page-body">
         <div className="page-title" style={{ textAlign: "center" }}>القائمة الرئيسية</div>

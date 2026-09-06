@@ -3,12 +3,25 @@
 // https://your-app.up.railway.app/api — Vercel has no server to proxy through.
 const BASE = import.meta.env.VITE_API_URL || "/api";
 
+import { getToken, logout } from "./auth.js";
+
 async function req(method, url, body) {
+  const token = getToken();
+  const headers = {};
+  if (body) headers["Content-Type"] = "application/json";
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
   const res = await fetch(BASE + url, {
     method,
-    headers: body ? { "Content-Type": "application/json" } : undefined,
+    headers,
     body: body ? JSON.stringify(body) : undefined,
   });
+
+  if (res.status === 401 && !url.startsWith("/auth/")) {
+    logout();
+    throw new Error("انتهت الجلسة، يرجى تسجيل الدخول من جديد");
+  }
+
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(data.error || "حدث خطأ");
@@ -17,6 +30,10 @@ async function req(method, url, body) {
 }
 
 export const api = {
+  auth: {
+    login: (username, password) => req("POST", "/auth/login", { username, password }),
+    me: () => req("GET", "/auth/me"),
+  },
   settings: {
     get: () => req("GET", "/settings"),
     update: (exchangeRate) => req("PUT", "/settings", { exchangeRate }),

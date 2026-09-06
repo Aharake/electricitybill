@@ -7,6 +7,8 @@ import pricingRouter from "./routes/pricing.js";
 import statisticsRouter from "./routes/statistics.js";
 import settingsRouter from "./routes/settings.js";
 import adminRouter from "./routes/admin.js";
+import authRouter from "./routes/auth.js";
+import { requireAuth } from "./lib/auth.js";
 import { whenReady } from "./lib/store.js";
 
 const app = express();
@@ -17,6 +19,10 @@ app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
 app.get("/api/health", (req, res) => res.json({ ok: true }));
+app.use("/api/auth", authRouter);
+app.use("/api/admin", adminRouter); // gated by its own ADMIN_TOKEN, independent of login
+
+app.use(requireAuth); // everything below requires a valid login token
 
 app.use("/api/subscribers", subscribersRouter);
 app.use("/api/monthly-bills", monthlyBillsRouter);
@@ -24,7 +30,6 @@ app.use("/api/box-readings", boxReadingsRouter);
 app.use("/api/pricing", pricingRouter);
 app.use("/api/statistics", statisticsRouter);
 app.use("/api/settings", settingsRouter);
-app.use("/api/admin", adminRouter);
 
 const PORT = process.env.PORT || 4000;
 
